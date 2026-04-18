@@ -58,7 +58,7 @@ export default function VideoBackground() {
       {/* Gradient overlay */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 z-[1] pointer-events-none bg-black/60"
+        className="absolute inset-0 z-[1] pointer-events-none bg-black/30"
       />
 
       <video
@@ -69,7 +69,7 @@ export default function VideoBackground() {
         loop
         playsInline
         preload="auto"
-        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
+        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 video-sway"
         style={{ opacity: ready ? 1 : 0 }}
       />
 
@@ -77,7 +77,7 @@ export default function VideoBackground() {
       {isMobile && ready && (
         <button
           onClick={toggleMute}
-          className="absolute bottom-6 right-6 z-[10] pressable w-10 h-10 rounded-full glass flex items-center justify-center text-white/80 hover:text-white transition-colors duration-200"
+          className="absolute bottom-6 right-6 z-[10] w-10 h-10 rounded-full glass flex items-center justify-center text-white/80 hover:text-white transition-colors duration-200 pulse-zoom"
           aria-label={muted ? "Unmute" : "Mute"}
         >
           {muted ? (
