@@ -9,7 +9,6 @@ export default function VideoBackground() {
   const [mounted, setMounted] = useState(false);
   const [muted, setMuted] = useState(true);
 
-  // Wait for mount to determine screen size
   useEffect(() => {
     setIsMobile(window.innerWidth < 768);
     setMounted(true);
@@ -19,7 +18,6 @@ export default function VideoBackground() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // Play video once it can
   useEffect(() => {
     if (!mounted) return;
     const video = videoRef.current;
@@ -33,18 +31,40 @@ export default function VideoBackground() {
     };
 
     video.addEventListener("canplay", handleCanPlay);
-    // Force load in case it's already ready
     video.load();
 
     return () => video.removeEventListener("canplay", handleCanPlay);
   }, [mounted, isMobile]);
+
+  // Resume playback when app returns from background (iOS/Android pause on hide)
+  useEffect(() => {
+    if (!mounted) return;
+    const video = videoRef.current;
+    if (!video) return;
+
+    const resume = () => {
+      if (document.hidden) return;
+      if (video.paused || video.ended) {
+        video.play().catch(() => {});
+      }
+    };
+
+    document.addEventListener("visibilitychange", resume);
+    window.addEventListener("pageshow", resume);
+    window.addEventListener("focus", resume);
+
+    return () => {
+      document.removeEventListener("visibilitychange", resume);
+      window.removeEventListener("pageshow", resume);
+      window.removeEventListener("focus", resume);
+    };
+  }, [mounted]);
 
   const toggleMute = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
     const next = !video.muted;
     video.muted = next;
-    // Re-trigger play after unmute (browsers may pause)
     if (!next) video.play().catch(() => {});
     setMuted(next);
   }, []);
@@ -55,12 +75,6 @@ export default function VideoBackground() {
 
   return (
     <>
-      {/* Gradient overlay */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 z-[1] pointer-events-none bg-black/30"
-      />
-
       <video
         ref={videoRef}
         src={src}
@@ -69,15 +83,19 @@ export default function VideoBackground() {
         loop
         playsInline
         preload="auto"
-        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 video-sway"
+        className="fixed inset-0 w-full h-full object-cover transition-opacity duration-700 video-sway z-0"
         style={{ opacity: ready ? 1 : 0 }}
       />
 
-      {/* Mobile audio toggle */}
+      <div
+        aria-hidden="true"
+        className="fixed inset-0 z-1 pointer-events-none bg-black/30"
+      />
+
       {isMobile && ready && (
         <button
           onClick={toggleMute}
-          className="absolute bottom-6 right-6 z-[10] w-10 h-10 rounded-full glass flex items-center justify-center text-white/80 hover:text-white transition-colors duration-200 pulse-zoom"
+          className="fixed bottom-6 right-6 z-30 w-10 h-10 rounded-full glass flex items-center justify-center text-white/80 hover:text-white transition-colors duration-200 pulse-zoom"
           aria-label={muted ? "Unmute" : "Mute"}
         >
           {muted ? (
