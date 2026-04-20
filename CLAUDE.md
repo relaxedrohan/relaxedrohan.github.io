@@ -44,5 +44,6 @@ src/
 ## Deployment
 
 Pushes to `master` trigger GitHub Actions (`.github/workflows/deploy.yml`):
+
 1. `npm ci` → `npm run build` → uploads `out/` to GitHub Pages
 2. Requires Node.js 20

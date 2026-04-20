@@ -1,51 +1,70 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback, useSyncExternalStore } from "react";
+
+function useIsMobile(): boolean | null {
+  return useSyncExternalStore(
+    (cb) => {
+      window.addEventListener("resize", cb, { passive: true });
+      return () => window.removeEventListener("resize", cb);
+    },
+    () => window.innerWidth < 768,
+    () => null,
+  );
+}
 
 export default function VideoBackground() {
+  const isMobile = useIsMobile();
+
+  if (isMobile === null) return null;
+
+  const videoSrc = isMobile ? "/hero-portrait.mp4" : "/hero-landscape.mp4";
+  const posterSrc = isMobile ? "/hero-portrait.jpg" : "/hero-landscape.jpg";
+
+  return (
+    <>
+      <VideoLayer key={videoSrc} src={videoSrc} poster={posterSrc} isMobile={isMobile} />
+      <div aria-hidden="true" className="fixed inset-0 z-1 pointer-events-none bg-black/30" />
+    </>
+  );
+}
+
+function VideoLayer({ src, poster, isMobile }: { src: string; poster: string; isMobile: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [ready, setReady] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [fallback, setFallback] = useState(false);
   const [muted, setMuted] = useState(true);
 
   useEffect(() => {
-    setIsMobile(window.innerWidth < 768);
-    setMounted(true);
-
-    const check = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", check, { passive: true });
-    return () => window.removeEventListener("resize", check);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
     const video = videoRef.current;
     if (!video) return;
 
-    setReady(false);
-
     const handleCanPlay = () => {
-      setReady(true);
-      video.play().catch(() => {});
+      const result = video.play();
+      if (result && typeof result.then === "function") {
+        result.then(() => setReady(true)).catch(() => setFallback(true));
+      } else {
+        setReady(true);
+      }
     };
 
     video.addEventListener("canplay", handleCanPlay);
     video.load();
 
     return () => video.removeEventListener("canplay", handleCanPlay);
-  }, [mounted, isMobile]);
+  }, []);
 
-  // Resume playback when app returns from background (iOS/Android pause on hide)
+  // Resume playback when app returns from background (iOS/Android pause on hide).
+  // If the resumed play() rejects (Low Power Mode kicks in), swap to the static fallback.
   useEffect(() => {
-    if (!mounted) return;
+    if (fallback) return;
     const video = videoRef.current;
     if (!video) return;
 
     const resume = () => {
       if (document.hidden) return;
       if (video.paused || video.ended) {
-        video.play().catch(() => {});
+        video.play().catch(() => setFallback(true));
       }
     };
 
@@ -58,26 +77,35 @@ export default function VideoBackground() {
       window.removeEventListener("pageshow", resume);
       window.removeEventListener("focus", resume);
     };
-  }, [mounted]);
+  }, [fallback]);
 
   const toggleMute = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
     const next = !video.muted;
     video.muted = next;
-    if (!next) video.play().catch(() => {});
+    if (!next) video.play().catch(() => setFallback(true));
     setMuted(next);
   }, []);
 
-  if (!mounted) return null;
-
-  const src = isMobile ? "/hero-portrait.mp4" : "/hero-landscape.mp4";
+  if (fallback) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={poster}
+        alt=""
+        aria-hidden="true"
+        className="fixed inset-0 w-full h-full object-cover z-0"
+      />
+    );
+  }
 
   return (
     <>
       <video
         ref={videoRef}
         src={src}
+        poster={poster}
         autoPlay
         muted={muted}
         loop
@@ -87,11 +115,6 @@ export default function VideoBackground() {
         style={{ opacity: ready ? 1 : 0 }}
       />
 
-      <div
-        aria-hidden="true"
-        className="fixed inset-0 z-1 pointer-events-none bg-black/30"
-      />
-
       {isMobile && ready && (
         <button
           onClick={toggleMute}
@@ -99,13 +122,31 @@ export default function VideoBackground() {
           aria-label={muted ? "Unmute" : "Mute"}
         >
           {muted ? (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M11 5L6 9H2v6h4l5 4V5z" />
               <line x1="23" y1="9" x2="17" y2="15" />
               <line x1="17" y1="9" x2="23" y2="15" />
             </svg>
           ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M11 5L6 9H2v6h4l5 4V5z" />
               <path d="M19.07 4.93a10 10 0 010 14.14" />
               <path d="M15.54 8.46a5 5 0 010 7.07" />

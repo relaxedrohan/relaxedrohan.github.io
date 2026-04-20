@@ -24,15 +24,25 @@ body {
 
 @media (max-width: 767px) {
   .mobile-text-pop {
-    text-shadow: 0 0 30px rgba(255, 255, 255, 0.6), 0 0 60px rgba(255, 255, 255, 0.3);
+    text-shadow:
+      0 0 30px rgba(255, 255, 255, 0.6),
+      0 0 60px rgba(255, 255, 255, 0.3);
   }
 }
 
 @keyframes sway {
-  0%   { transform: scale(1.15) rotate(0deg); }
-  33%  { transform: scale(1.15) rotate(3deg); }
-  66%  { transform: scale(1.15) rotate(-3deg); }
-  100% { transform: scale(1.15) rotate(0deg); }
+  0% {
+    transform: scale(1.15) rotate(0deg);
+  }
+  33% {
+    transform: scale(1.15) rotate(3deg);
+  }
+  66% {
+    transform: scale(1.15) rotate(-3deg);
+  }
+  100% {
+    transform: scale(1.15) rotate(0deg);
+  }
 }
 
 .video-sway {
@@ -40,8 +50,13 @@ body {
 }
 
 @keyframes pulse-zoom {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.15); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
 }
 
 .pulse-zoom {
@@ -49,7 +64,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }

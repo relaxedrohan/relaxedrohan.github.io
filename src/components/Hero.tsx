@@ -31,7 +31,10 @@ const tooltipClass =
 export default function Hero() {
   return (
     <section id="home" className="relative min-h-screen w-full overflow-hidden">
-      <div className="relative z-2 flex flex-col items-center justify-center text-center min-h-screen px-6" style={{ color: "#ffffff" }}>
+      <div
+        className="relative z-2 flex flex-col items-center justify-center text-center min-h-screen px-6"
+        style={{ color: "#ffffff" }}
+      >
         <motion.p
           custom={0}
           variants={fade}
@@ -80,8 +83,7 @@ export default function Hero() {
           className="text-2xl lg:text-3xl font-semibold leading-snug text-balance mt-8 max-w-sm md:max-w-lg"
           style={{ textShadow: shadow }}
         >
-          I care about intention, performance, and the invisible details that
-          make software feel right.
+          I care about simplicity, performance, reliability, and the beautiful invisible details.
         </motion.p>
 
         <motion.div
@@ -107,7 +109,16 @@ export default function Hero() {
           </motion.a>
 
           <IconLink href="mailto:rohanyadavdec@gmail.com" label="Send email">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
               <polyline points="22,6 12,13 2,6" />
             </svg>
@@ -130,15 +141,7 @@ export default function Hero() {
   );
 }
 
-function IconLink({
-  href,
-  label,
-  children,
-}: {
-  href: string;
-  label: string;
-  children: ReactNode;
-}) {
+function IconLink({ href, label, children }: { href: string; label: string; children: ReactNode }) {
   return (
     <motion.a
       href={href}
