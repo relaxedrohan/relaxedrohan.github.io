@@ -21,3 +21,6 @@ next-env.d.ts
 
 #git
 .git
+
+# original/uncompressed source media (kept locally only)
+/media/
