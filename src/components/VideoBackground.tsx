@@ -55,7 +55,9 @@ function VideoLayer({ src, poster, isMobile }: { src: string; poster: string; is
   }, []);
 
   // Resume playback when app returns from background (iOS/Android pause on hide).
-  // If the resumed play() rejects (Low Power Mode kicks in), swap to the static fallback.
+  // A failed resume play() is non-permanent (e.g. Safari Private Browsing rejects
+  // programmatic play after lock/unlock) — leave the video paused so the user can
+  // tap to recover, instead of swapping to the static fallback.
   useEffect(() => {
     if (fallback) return;
     const video = videoRef.current;
@@ -64,7 +66,7 @@ function VideoLayer({ src, poster, isMobile }: { src: string; poster: string; is
     const resume = () => {
       if (document.hidden) return;
       if (video.paused || video.ended) {
-        video.play().catch(() => setFallback(true));
+        video.play().catch(() => {});
       }
     };
 
@@ -84,8 +86,15 @@ function VideoLayer({ src, poster, isMobile }: { src: string; poster: string; is
     if (!video) return;
     const next = !video.muted;
     video.muted = next;
-    if (!next) video.play().catch(() => setFallback(true));
     setMuted(next);
+    // A user tap is a play gesture — also use it to recover from a paused state
+    // left behind by a failed resume. If unmuted play is rejected, revert to muted.
+    video.play().catch(() => {
+      if (!next) {
+        video.muted = true;
+        setMuted(true);
+      }
+    });
   }, []);
 
   if (fallback) {
